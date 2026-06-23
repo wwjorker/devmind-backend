@@ -763,3 +763,45 @@ DEVMIND_DEEPSEEK_MODEL=deepseek-v4-flash
 ```
 
 然后重启后端即可。
+## 30 真实 DeepSeek 调用验证
+
+这一步的目标是确认 DevMind 已经从本地 mock 模型切换到了真实 DeepSeek API。
+
+我们在 IDEA 的 `DevMindApplication` 运行配置里加入了：
+
+```text
+DEVMIND_AI_PROVIDER=deepseek
+DEVMIND_DEEPSEEK_API_KEY=你的真实 key
+DEVMIND_DEEPSEEK_MODEL=deepseek-v4-flash
+```
+
+然后重启后端。重启是必须的，因为 Spring Boot 只会在应用启动时读取环境变量。
+
+测试链路是：
+
+```text
+注册临时用户 -> 登录获取 JWT -> 创建知识文档 -> 提问 -> 检索 chunk -> 构造 prompt -> 调用 DeepSeek -> 写入 ai_ask_log
+```
+
+本次验证结果：
+
+```text
+modelProvider = deepseek:deepseek-v4-flash
+mock = false
+promptPreviewPresent = true
+citationCount = 1
+```
+
+其中最关键的是：
+
+```text
+mock = false
+```
+
+这说明返回结果不是 `MockLlmClient` 生成的，而是真实调用了 DeepSeek。
+
+面试时可以这样讲：
+
+```text
+项目默认使用 MockLlmClient 保证本地开发稳定；当配置 DEVMIND_AI_PROVIDER=deepseek 并注入 API Key 后，LlmClientRouter 会把请求路由到 DeepSeekLlmClient。AI Ask 接口会先检索相关知识片段，再构建带上下文和引用约束的 Prompt，最后调用真实模型并把问题、Prompt、召回 chunk、模型 provider、耗时等信息写入日志表，方便后续做可观测和 RAG 效果分析。
+```
