@@ -242,14 +242,3 @@ docs/interview-guide-cn.md
 docs/resume-cn.md
 docs/learning/devmind-live-notes-cn.md
 ```
-
-## Project Isolation
-
-This project is isolated from the Sky Take Out project:
-
-```text
-DevMind:      F:\AI项目\devmind-backend
-Sky Take Out: F:\cangqiong
-```
-
-Do not put DevMind files inside `F:\cangqiong`.
