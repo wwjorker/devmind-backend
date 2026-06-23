@@ -33,6 +33,9 @@ public class AiAskLogService {
                                String answer,
                                String modelProvider,
                                boolean mock,
+                               Integer promptTokens,
+                               Integer completionTokens,
+                               Integer totalTokens,
                                List<ChunkSearchResponse> retrievedChunks,
                                long elapsedMs) {
         AiAskLog log = new AiAskLog();
@@ -43,6 +46,9 @@ public class AiAskLogService {
         log.setAnswer(answer);
         log.setModelProvider(modelProvider);
         log.setMock(mock);
+        log.setPromptTokens(promptTokens);
+        log.setCompletionTokens(completionTokens);
+        log.setTotalTokens(totalTokens);
         log.setRetrievedChunkCount(retrievedChunks.size());
         log.setRetrievedChunkIds(toChunkIds(retrievedChunks));
         log.setElapsedMs(elapsedMs);
@@ -83,6 +89,9 @@ public class AiAskLogService {
                 log.getAnswer(),
                 log.getModelProvider(),
                 log.getMock(),
+                log.getPromptTokens(),
+                log.getCompletionTokens(),
+                log.getTotalTokens(),
                 log.getRetrievedChunkCount(),
                 log.getRetrievedChunkIds(),
                 log.getElapsedMs(),

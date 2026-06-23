@@ -58,7 +58,15 @@ public class DeepSeekLlmClient implements LlmClient {
                     .body(JsonNode.class);
 
             String answer = extractAnswer(response);
-            return new LlmResponse(answer, "deepseek:" + aiProperties.getDeepseekModel(), false);
+            JsonNode usage = response.path("usage");
+            return new LlmResponse(
+                    answer,
+                    "deepseek:" + aiProperties.getDeepseekModel(),
+                    false,
+                    readNullableInt(usage, "prompt_tokens"),
+                    readNullableInt(usage, "completion_tokens"),
+                    readNullableInt(usage, "total_tokens")
+            );
         } catch (RestClientException ex) {
             throw new BizException(ResultCode.INTERNAL_ERROR, "DeepSeek request failed");
         }
@@ -77,5 +85,13 @@ public class DeepSeekLlmClient implements LlmClient {
             throw new BizException(ResultCode.INTERNAL_ERROR, "DeepSeek response content is empty");
         }
         return contentNode.asText();
+    }
+
+    private Integer readNullableInt(JsonNode node, String fieldName) {
+        JsonNode value = node.path(fieldName);
+        if (value.isMissingNode() || value.isNull()) {
+            return null;
+        }
+        return value.asInt();
     }
 }

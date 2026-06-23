@@ -805,3 +805,46 @@ mock = false
 ```text
 项目默认使用 MockLlmClient 保证本地开发稳定；当配置 DEVMIND_AI_PROVIDER=deepseek 并注入 API Key 后，LlmClientRouter 会把请求路由到 DeepSeekLlmClient。AI Ask 接口会先检索相关知识片段，再构建带上下文和引用约束的 Prompt，最后调用真实模型并把问题、Prompt、召回 chunk、模型 provider、耗时等信息写入日志表，方便后续做可观测和 RAG 效果分析。
 ```
+## 31 为什么要记录 token usage
+
+真实模型不是免费的，每次调用都会按照输入和输出 token 计费。
+
+所以 `ai_ask_log` 现在新增了三个字段：
+
+```text
+prompt_tokens
+completion_tokens
+total_tokens
+```
+
+它们分别表示：
+
+- `prompt_tokens`：发送给模型的输入 token 数，包含系统提示词、用户问题、召回的知识片段。
+- `completion_tokens`：模型生成答案消耗的输出 token 数。
+- `total_tokens`：本次调用总 token 数。
+
+这一步的价值不是“多存几个字段”，而是让 AI 调用具备可观测性：
+
+```text
+一次问答是否太贵？
+prompt 是否塞了太多无关 chunk？
+用户问题是否导致输出过长？
+后续做 RAG 评估时，效果和成本能不能一起比较？
+```
+
+面试时可以这样讲：
+
+```text
+我没有只停留在把大模型 API 调通，而是把每次 AI 调用的 provider、耗时、召回 chunk、prompt preview 和 token usage 都记录到日志表里。这样后续可以分析 bad case，也可以根据 prompt_tokens 和 completion_tokens 做成本统计，判断 RAG 检索是否召回了过多无关上下文。
+```
+
+本机已有数据库需要执行迁移：
+
+```sql
+USE devmind;
+
+ALTER TABLE ai_ask_log
+    ADD COLUMN prompt_tokens INT DEFAULT NULL AFTER mock,
+    ADD COLUMN completion_tokens INT DEFAULT NULL AFTER prompt_tokens,
+    ADD COLUMN total_tokens INT DEFAULT NULL AFTER completion_tokens;
+```

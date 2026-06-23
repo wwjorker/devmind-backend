@@ -18,6 +18,9 @@ public class AiAskLog {
     private String answer;
     private String modelProvider;
     private Boolean mock;
+    private Integer promptTokens;
+    private Integer completionTokens;
+    private Integer totalTokens;
     private Integer retrievedChunkCount;
     private String retrievedChunkIds;
     private Long elapsedMs;
@@ -86,6 +89,30 @@ public class AiAskLog {
 
     public void setMock(Boolean mock) {
         this.mock = mock;
+    }
+
+    public Integer getPromptTokens() {
+        return promptTokens;
+    }
+
+    public void setPromptTokens(Integer promptTokens) {
+        this.promptTokens = promptTokens;
+    }
+
+    public Integer getCompletionTokens() {
+        return completionTokens;
+    }
+
+    public void setCompletionTokens(Integer completionTokens) {
+        this.completionTokens = completionTokens;
+    }
+
+    public Integer getTotalTokens() {
+        return totalTokens;
+    }
+
+    public void setTotalTokens(Integer totalTokens) {
+        this.totalTokens = totalTokens;
     }
 
     public Integer getRetrievedChunkCount() {

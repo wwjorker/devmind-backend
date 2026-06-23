@@ -11,6 +11,9 @@ public class AskLogResponse {
     private String answer;
     private String modelProvider;
     private Boolean mock;
+    private Integer promptTokens;
+    private Integer completionTokens;
+    private Integer totalTokens;
     private Integer retrievedChunkCount;
     private String retrievedChunkIds;
     private Long elapsedMs;
@@ -27,6 +30,9 @@ public class AskLogResponse {
                           String answer,
                           String modelProvider,
                           Boolean mock,
+                          Integer promptTokens,
+                          Integer completionTokens,
+                          Integer totalTokens,
                           Integer retrievedChunkCount,
                           String retrievedChunkIds,
                           Long elapsedMs,
@@ -39,6 +45,9 @@ public class AskLogResponse {
         this.answer = answer;
         this.modelProvider = modelProvider;
         this.mock = mock;
+        this.promptTokens = promptTokens;
+        this.completionTokens = completionTokens;
+        this.totalTokens = totalTokens;
         this.retrievedChunkCount = retrievedChunkCount;
         this.retrievedChunkIds = retrievedChunkIds;
         this.elapsedMs = elapsedMs;
@@ -100,6 +109,30 @@ public class AskLogResponse {
 
     public void setMock(Boolean mock) {
         this.mock = mock;
+    }
+
+    public Integer getPromptTokens() {
+        return promptTokens;
+    }
+
+    public void setPromptTokens(Integer promptTokens) {
+        this.promptTokens = promptTokens;
+    }
+
+    public Integer getCompletionTokens() {
+        return completionTokens;
+    }
+
+    public void setCompletionTokens(Integer completionTokens) {
+        this.completionTokens = completionTokens;
+    }
+
+    public Integer getTotalTokens() {
+        return totalTokens;
+    }
+
+    public void setTotalTokens(Integer totalTokens) {
+        this.totalTokens = totalTokens;
     }
 
     public Integer getRetrievedChunkCount() {

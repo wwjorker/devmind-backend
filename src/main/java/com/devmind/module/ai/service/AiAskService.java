@@ -60,11 +60,27 @@ public class AiAskService {
                 answer,
                 modelProvider,
                 mock,
+                llmResponse.getPromptTokens(),
+                llmResponse.getCompletionTokens(),
+                llmResponse.getTotalTokens(),
                 chunks,
                 elapsedMs
         );
 
-        return new AskResponse(logId, question, retrievalKeyword, promptPreview, answer, modelProvider, mock, chunks, citations);
+        return new AskResponse(
+                logId,
+                question,
+                retrievalKeyword,
+                promptPreview,
+                answer,
+                modelProvider,
+                mock,
+                llmResponse.getPromptTokens(),
+                llmResponse.getCompletionTokens(),
+                llmResponse.getTotalTokens(),
+                chunks,
+                citations
+        );
     }
 
     private String resolveRetrievalKeyword(String question) {

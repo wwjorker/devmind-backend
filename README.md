@@ -11,7 +11,7 @@ DevMind is a Spring Boot backend for a personal developer knowledge base with a 
 - Keyword-based chunk retrieval v0
 - RAG ask flow: question -> retrieval -> prompt -> LLM client -> answer
 - Prompt preview and citation metadata
-- AI ask logs for observability and bad-case analysis
+- AI ask logs with token usage for observability, cost tracking, and bad-case analysis
 - Pluggable LLM layer with `MockLlmClient` and `DeepSeekLlmClient`
 - OpenAPI / Swagger UI
 - IDEA HTTP Client test file
@@ -62,7 +62,7 @@ Register/Login
 -> Build prompt from question and retrieved chunks
 -> Generate answer through LlmClient
 -> Return citations
--> Save ask log
+-> Save ask log with latency and token usage
 ```
 
 ## API
@@ -170,6 +170,25 @@ Current implementations:
 - `DeepSeekLlmClient`: OpenAI-compatible DeepSeek chat completions client
 
 This keeps business orchestration separate from model-provider code.
+
+## Observability
+
+Each AI ask request records:
+
+```text
+question
+retrieval keyword
+prompt preview
+model provider
+mock or real-provider flag
+retrieved chunk ids
+elapsed milliseconds
+prompt tokens
+completion tokens
+total tokens
+```
+
+Token fields are populated when the upstream LLM provider returns usage metadata. Mock responses keep them empty.
 
 ## Learning Notes
 
