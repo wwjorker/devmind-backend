@@ -1,5 +1,7 @@
 # DevMind Backend
 
+[![CI](https://github.com/wwjorker/devmind-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/wwjorker/devmind-backend/actions/workflows/ci.yml)
+
 DevMind is a Spring Boot backend for a personal developer knowledge base with a RAG-style AI question-answering pipeline.
 
 It is built as a Java backend portfolio project, not a thin AI API wrapper. The project includes authentication, document management, chunk generation, retrieval, prompt building, LLM provider abstraction, citations, AI call logs, token usage tracking, bad-case feedback, and a lightweight RAG evaluation summary API.
@@ -52,6 +54,25 @@ Springdoc OpenAPI
 JJWT
 DeepSeek API
 ```
+
+## Testing And CI
+
+Run the unit test suite locally:
+
+```bash
+mvn test
+```
+
+The current tests cover core logic that should stay stable during later iterations:
+
+```text
+Prompt building
+Mock LLM responses
+LLM provider routing
+JWT creation and parsing
+```
+
+GitHub Actions runs the same Maven test command on every push and pull request to `main`.
 
 ## Architecture
 

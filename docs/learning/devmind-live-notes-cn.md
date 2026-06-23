@@ -1075,3 +1075,40 @@ BUILD SUCCESS
 ```text
 我为 RAG 问答链路中的 Prompt 构建、模型路由、Mock 模型回答和 JWT 鉴权补充了单元测试。这些测试不依赖外部数据库和真实大模型 API，能够在本地快速验证核心业务规则，避免后续迭代 Prompt、Provider 或鉴权逻辑时引入回归问题。
 ```
+
+## 36 为什么要加 GitHub Actions CI
+
+本地执行 `mvn test` 只能证明“在我这台电脑上测试通过”。
+
+GitHub Actions CI 的作用是：每次代码 push 到 GitHub，或者以后创建 Pull Request 时，GitHub 自动在云端拉取代码、安装 Java、执行测试。
+
+这次新增的文件是：
+
+```text
+.github/workflows/ci.yml
+```
+
+它做了几件事：
+
+```text
+checkout 代码
+安装 Java 17
+缓存 Maven 依赖
+执行 mvn test
+```
+
+为什么用 Java 17？
+
+因为 `pom.xml` 里项目声明的是：
+
+```xml
+<java.version>17</java.version>
+```
+
+虽然本机 IDEA 当前使用 Java 19 也能跑，但 CI 使用项目声明的 Java 17 更规范，也更接近企业项目对版本一致性的要求。
+
+面试时可以这样讲：
+
+```text
+我在项目中加入了 GitHub Actions CI，每次 push 或 PR 都会自动使用 Java 17 执行 Maven 测试。这样可以保证核心单元测试在独立环境中通过，避免只在本机可用，也体现了基本的工程化质量保障流程。
+```
