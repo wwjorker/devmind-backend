@@ -218,6 +218,7 @@ Minimal local configuration:
 DEVMIND_DB_URL=jdbc:mysql://localhost:3306/devmind?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
 DEVMIND_DB_USERNAME=your_mysql_username
 DEVMIND_DB_PASSWORD=your_mysql_password
+DEVMIND_JWT_SECRET=replace_with_a_long_random_secret_for_non_local_use
 DEVMIND_AI_PROVIDER=mock
 ```
 
@@ -232,6 +233,8 @@ DEVMIND_DEEPSEEK_TEMPERATURE=0.2
 ```
 
 Never commit real API keys.
+
+The default JWT secret in `application.yml` is only for local development. Override `DEVMIND_JWT_SECRET` in any shared, deployed, or production-like environment.
 
 ## Interview Notes
 
