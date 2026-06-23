@@ -1029,3 +1029,49 @@ spring:
 ```text
 项目最开始为了快速验证使用手动 SQL，后面我引入 Flyway 做数据库版本管理。新环境只需要创建数据库，应用启动时会自动执行迁移；已有数据库则通过 baseline-on-migrate 接管，后续表结构变更都可以通过 V2、V3 这类脚本追踪。
 ```
+
+## 35 为什么要给核心逻辑补单元测试
+
+这次新增的测试不是为了“显得项目很复杂”，而是为了保护核心业务规则。
+
+当前 DevMind 里最容易被后续修改影响的地方有：
+
+- Prompt 构建：问题、上下文、引用要求必须被正确拼进 prompt。
+- Mock 模型：没有真实 API Key 时，本地链路仍然要稳定可测。
+- LLM 路由：`DEVMIND_AI_PROVIDER` 改成不同 provider 时，要能路由到正确实现。
+- JWT：登录后生成的 token 必须能正确解析出用户身份。
+
+所以新增了这些测试：
+
+```text
+PromptBuilderServiceTest
+MockLlmClientTest
+LlmClientRouterTest
+JwtTokenProviderTest
+```
+
+它们都是不依赖 MySQL、Redis、DeepSeek API 的单元测试。这样做的好处是：
+
+- 跑得快。
+- 不受本机数据库状态影响。
+- 不消耗 API 余额。
+- 能快速发现核心逻辑被改坏。
+
+这次测试命令是：
+
+```powershell
+mvn test
+```
+
+最终结果：
+
+```text
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+面试时可以这样讲：
+
+```text
+我为 RAG 问答链路中的 Prompt 构建、模型路由、Mock 模型回答和 JWT 鉴权补充了单元测试。这些测试不依赖外部数据库和真实大模型 API，能够在本地快速验证核心业务规则，避免后续迭代 Prompt、Provider 或鉴权逻辑时引入回归问题。
+```
