@@ -1,0 +1,101 @@
+@baseUrl = http://localhost:8081
+@username = testuser
+@password = 123456
+
+### Register
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}",
+  "nickname": "Test User",
+  "email": "testuser@example.com"
+}
+
+### Login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+> {% client.global.set("authToken", response.body.data.token); %}
+
+### Current User
+GET {{baseUrl}}/api/v1/auth/me
+Authorization: Bearer {{authToken}}
+
+### Create Knowledge Document
+POST {{baseUrl}}/api/v1/documents
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Redis cache penetration review",
+  "content": "Problem:\nThe API may hit the database repeatedly when a missing key is requested many times.\n\nRoot cause:\nThe system only caches existing data, so non-existing data bypasses Redis every time.\n\nSolution:\nCache empty values for a short TTL, validate illegal parameters early, and add rate limiting for abnormal traffic.\n\nInterview talking point:\nCache penetration is different from cache breakdown and cache avalanche. The key is to protect the database from repeated misses.",
+  "sourceType": "bug_review",
+  "tags": "redis,cache,backend",
+  "summary": "A short review note about cache penetration."
+}
+
+> {% client.global.set("documentId", response.body.data.id); %}
+
+### List Documents
+GET {{baseUrl}}/api/v1/documents?pageNo=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### Search Documents
+GET {{baseUrl}}/api/v1/documents?keyword=Redis&pageNo=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### Get Document Detail
+GET {{baseUrl}}/api/v1/documents/{{documentId}}
+Authorization: Bearer {{authToken}}
+
+### List Document Chunks
+GET {{baseUrl}}/api/v1/documents/{{documentId}}/chunks
+Authorization: Bearer {{authToken}}
+
+### Search Chunks
+GET {{baseUrl}}/api/v1/search/chunks?keyword=Redis&limit=5
+Authorization: Bearer {{authToken}}
+
+### Ask AI Mock
+POST {{baseUrl}}/api/v1/ai/ask
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "question": "Redis cache penetration 怎么解决？",
+  "retrievalLimit": 3
+}
+
+### List AI Ask Logs
+GET {{baseUrl}}/api/v1/ai/ask-logs?pageNo=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### Inspect Latest Ask Logs in Database
+# Run this SQL in DBeaver after Ask AI Mock:
+# SELECT id, question, retrieval_keyword, retrieved_chunk_ids, elapsed_ms, created_at
+# FROM devmind.ai_ask_log
+# ORDER BY id DESC;
+
+### Update Document
+PUT {{baseUrl}}/api/v1/documents/{{documentId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Redis cache penetration review updated",
+  "content": "Updated problem:\nRepeated requests for non-existing data can bypass Redis and pressure MySQL.\n\nUpdated solution:\nCache empty values, validate parameters, add rate limiting, and monitor abnormal miss rates.\n\nRAG note:\nAfter this update, old chunks should be archived and new chunks should be generated.",
+  "sourceType": "bug_review",
+  "tags": "redis,cache,backend,rag",
+  "summary": "Updated cache penetration note."
+}
+
+### Archive Document
+DELETE {{baseUrl}}/api/v1/documents/{{documentId}}
+Authorization: Bearer {{authToken}}
