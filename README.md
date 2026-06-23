@@ -12,6 +12,7 @@ DevMind is a Spring Boot backend for a personal developer knowledge base with a 
 - RAG ask flow: question -> retrieval -> prompt -> LLM client -> answer
 - Prompt preview and citation metadata
 - AI ask logs with token usage for observability, cost tracking, and bad-case analysis
+- AI ask feedback for helpfulness labels and bad-case collection
 - Pluggable LLM layer with `MockLlmClient` and `DeepSeekLlmClient`
 - OpenAPI / Swagger UI
 - IDEA HTTP Client test file
@@ -98,6 +99,8 @@ GET    /api/v1/search/chunks?keyword=Redis&limit=5
 
 POST   /api/v1/ai/ask
 GET    /api/v1/ai/ask-logs
+POST   /api/v1/ai/ask-logs/{logId}/feedback
+GET    /api/v1/ai/ask-feedback
 ```
 
 ## Local Setup
@@ -186,9 +189,12 @@ elapsed milliseconds
 prompt tokens
 completion tokens
 total tokens
+feedback labels and bad-case reasons
 ```
 
 Token fields are populated when the upstream LLM provider returns usage metadata. Mock responses keep them empty.
+
+Feedback records let users mark an answer as helpful or not helpful and add a reason plus an expected answer. This creates a simple bad-case dataset for later retrieval tuning, prompt iteration, and evaluation.
 
 ## Learning Notes
 

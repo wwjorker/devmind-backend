@@ -848,3 +848,79 @@ ALTER TABLE ai_ask_log
     ADD COLUMN completion_tokens INT DEFAULT NULL AFTER prompt_tokens,
     ADD COLUMN total_tokens INT DEFAULT NULL AFTER completion_tokens;
 ```
+## 32 Bad Case 反馈为什么有价值
+
+RAG 系统不能只看“有没有回答”，还要看“回答好不好”。
+
+所以现在新增了一张表：
+
+```text
+ai_ask_feedback
+```
+
+它记录用户对某次 AI 问答的反馈：
+
+```text
+ask_log_id
+helpful
+reason
+expected_answer
+created_at
+```
+
+它和 `ai_ask_log` 的关系是：
+
+```text
+一次 AI 问答日志 -> 可以有多条反馈记录
+```
+
+第一版接口：
+
+```text
+POST /api/v1/ai/ask-logs/{logId}/feedback
+GET  /api/v1/ai/ask-feedback?helpful=false&pageNo=1&pageSize=10
+```
+
+为什么要做这个？
+
+因为真实 AI 项目一定会遇到回答不准、召回不准、引用不够、答案太泛的问题。
+
+如果没有 feedback 表，这些问题只能靠记忆，后续无法系统分析。
+
+有了 bad case 记录后，后面可以做：
+
+```text
+统计哪些问题经常回答不好
+分析是检索没召回，还是 prompt 没约束好
+把 expected_answer 当作人工标注答案
+后续做 RAG 评估集
+比较改 prompt、改检索策略前后的效果
+```
+
+面试时可以这样讲：
+
+```text
+我在 AI Ask 日志之外又设计了 feedback 表，用户可以对某次回答标记 helpful 或 bad case，并记录原因和期望答案。这样项目不是一次性 demo，而是具备质量反馈闭环。后续可以基于这些 bad case 做 prompt 迭代、检索策略优化和离线评估。
+```
+
+本机已有数据库需要执行迁移：
+
+```sql
+USE devmind;
+
+CREATE TABLE IF NOT EXISTS ai_ask_feedback (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    ask_log_id BIGINT NOT NULL,
+    helpful TINYINT NOT NULL COMMENT '1 helpful, 0 bad case',
+    reason VARCHAR(500) DEFAULT NULL,
+    expected_answer MEDIUMTEXT DEFAULT NULL,
+    status TINYINT NOT NULL DEFAULT 1 COMMENT '1 active, 0 deleted',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user_created (user_id, created_at),
+    INDEX idx_user_helpful (user_id, helpful, created_at),
+    INDEX idx_ask_log (ask_log_id),
+    CONSTRAINT fk_ai_ask_feedback_user FOREIGN KEY (user_id) REFERENCES user_account(id),
+    CONSTRAINT fk_ai_ask_feedback_log FOREIGN KEY (ask_log_id) REFERENCES ai_ask_log(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```

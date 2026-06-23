@@ -15,6 +15,7 @@ flowchart TB
     AI --> Prompt["prompt builder"]
     AI --> LLM["llm client router"]
     AI --> Log["ask log service"]
+    AI --> Feedback["ask feedback service"]
     LLM --> Mock["mock client"]
     LLM --> DeepSeek["deepseek client"]
 ```
@@ -27,6 +28,8 @@ erDiagram
     user_account ||--o{ knowledge_document_chunk : owns
     knowledge_document ||--o{ knowledge_document_chunk : contains
     user_account ||--o{ ai_ask_log : creates
+    user_account ||--o{ ai_ask_feedback : creates
+    ai_ask_log ||--o{ ai_ask_feedback : receives
 
     user_account {
         bigint id
@@ -66,8 +69,21 @@ erDiagram
         mediumtext answer
         varchar model_provider
         tinyint mock
+        int prompt_tokens
+        int completion_tokens
+        int total_tokens
         varchar retrieved_chunk_ids
         bigint elapsed_ms
+    }
+
+    ai_ask_feedback {
+        bigint id
+        bigint user_id
+        bigint ask_log_id
+        tinyint helpful
+        varchar reason
+        mediumtext expected_answer
+        tinyint status
     }
 ```
 
@@ -100,7 +116,8 @@ sequenceDiagram
 - Chunks are rebuilt after document updates to keep retrieval results aligned with the latest content.
 - Retrieval v0 uses keyword matching first, because it is easy to debug before introducing embeddings.
 - `LlmClient` separates model-provider implementation from RAG orchestration.
-- Ask logs record question, retrieval keyword, chunk ids, answer, provider, and elapsed time for later bad-case analysis.
+- Ask logs record question, retrieval keyword, chunk ids, answer, provider, token usage, and elapsed time for later bad-case analysis.
+- Ask feedback stores helpfulness labels, reasons, and expected answers so bad cases can become a small evaluation dataset.
 
 ## Next Improvements
 
@@ -108,5 +125,5 @@ sequenceDiagram
 - Add embedding and vector retrieval.
 - Add hybrid retrieval: keyword + vector.
 - Add reranking.
-- Add retrieval evaluation and bad-case labels.
+- Use feedback labels to build retrieval evaluation and bad-case reports.
 - Add Flyway for database migration management.
