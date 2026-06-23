@@ -924,3 +924,47 @@ CREATE TABLE IF NOT EXISTS ai_ask_feedback (
     CONSTRAINT fk_ai_ask_feedback_log FOREIGN KEY (ask_log_id) REFERENCES ai_ask_log(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
+## 33 RAG 评估统计接口
+
+只有 `ai_ask_feedback` 表还不够，因为表只是原始数据。
+
+为了让 bad case 真正能被分析，现在新增了统计接口：
+
+```text
+GET /api/v1/ai/evaluation/summary?recentLimit=5
+```
+
+它返回：
+
+```text
+totalFeedbackCount
+helpfulCount
+badCaseCount
+badCaseRate
+recentBadCases
+```
+
+其中：
+
+- `totalFeedbackCount`：当前用户一共提交了多少条反馈。
+- `helpfulCount`：多少条认为回答有用。
+- `badCaseCount`：多少条认为回答不好。
+- `badCaseRate`：bad case 占比，0.25 表示 25%。
+- `recentBadCases`：最近的 bad case 列表，包含问题、原因和期望答案。
+
+为什么要做这个接口？
+
+因为真实项目里，光把反馈存起来还不够，还要能回答：
+
+```text
+最近 AI 回答质量怎么样？
+bad case 比例高不高？
+哪些问题经常答不好？
+下一步应该优化 prompt，还是优化检索？
+```
+
+面试时可以这样讲：
+
+```text
+我基于 feedback 表做了一个 RAG 评估统计接口，聚合总反馈数、bad case 数、bad case rate 和最近 bad case。它相当于一个轻量质量看板，可以帮助后续判断 RAG 链路是否需要调整 prompt、检索策略或知识库内容。
+```

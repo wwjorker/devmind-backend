@@ -118,6 +118,7 @@ sequenceDiagram
 - `LlmClient` separates model-provider implementation from RAG orchestration.
 - Ask logs record question, retrieval keyword, chunk ids, answer, provider, token usage, and elapsed time for later bad-case analysis.
 - Ask feedback stores helpfulness labels, reasons, and expected answers so bad cases can become a small evaluation dataset.
+- The evaluation summary endpoint aggregates feedback count, bad-case count, bad-case rate, and recent bad cases for RAG quality analysis.
 
 ## Next Improvements
 

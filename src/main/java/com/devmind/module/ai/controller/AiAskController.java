@@ -11,6 +11,7 @@ import com.devmind.module.ai.service.AiAskService;
 import com.devmind.module.ai.vo.AskFeedbackResponse;
 import com.devmind.module.ai.vo.AskLogResponse;
 import com.devmind.module.ai.vo.AskResponse;
+import com.devmind.module.ai.vo.EvaluationSummaryResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -63,5 +64,11 @@ public class AiAskController {
                                                                @RequestParam(defaultValue = "1") long pageNo,
                                                                @RequestParam(defaultValue = "10") long pageSize) {
         return Result.success(feedbackService.page(user.userId(), helpful, pageNo, pageSize));
+    }
+
+    @GetMapping("/evaluation/summary")
+    public Result<EvaluationSummaryResponse> evaluationSummary(@AuthenticationPrincipal AuthenticatedUser user,
+                                                               @RequestParam(required = false) Integer recentLimit) {
+        return Result.success(feedbackService.summary(user.userId(), recentLimit));
     }
 }

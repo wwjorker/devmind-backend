@@ -101,6 +101,7 @@ POST   /api/v1/ai/ask
 GET    /api/v1/ai/ask-logs
 POST   /api/v1/ai/ask-logs/{logId}/feedback
 GET    /api/v1/ai/ask-feedback
+GET    /api/v1/ai/evaluation/summary
 ```
 
 ## Local Setup
@@ -195,6 +196,18 @@ feedback labels and bad-case reasons
 Token fields are populated when the upstream LLM provider returns usage metadata. Mock responses keep them empty.
 
 Feedback records let users mark an answer as helpful or not helpful and add a reason plus an expected answer. This creates a simple bad-case dataset for later retrieval tuning, prompt iteration, and evaluation.
+
+The evaluation summary endpoint aggregates feedback into:
+
+```text
+total feedback count
+helpful count
+bad case count
+bad case rate
+recent bad cases
+```
+
+This turns feedback records into a lightweight RAG quality dashboard API.
 
 ## Learning Notes
 

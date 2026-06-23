@@ -11,17 +11,24 @@ import com.devmind.module.ai.entity.AiAskLog;
 import com.devmind.module.ai.mapper.AiAskFeedbackMapper;
 import com.devmind.module.ai.mapper.AiAskLogMapper;
 import com.devmind.module.ai.vo.AskFeedbackResponse;
+import com.devmind.module.ai.vo.BadCaseSummaryResponse;
+import com.devmind.module.ai.vo.EvaluationSummaryResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class AiAskFeedbackService {
 
     private static final int STATUS_ACTIVE = 1;
     private static final long MAX_PAGE_SIZE = 50;
+    private static final int DEFAULT_RECENT_BAD_CASE_LIMIT = 5;
+    private static final int MAX_RECENT_BAD_CASE_LIMIT = 20;
 
     private final AiAskFeedbackMapper feedbackMapper;
     private final AiAskLogMapper askLogMapper;
@@ -74,12 +81,82 @@ public class AiAskFeedbackService {
         return new PageResult<>(page.getCurrent(), page.getSize(), page.getTotal(), records);
     }
 
+    public EvaluationSummaryResponse summary(Long userId, Integer recentLimit) {
+        int safeRecentLimit = recentLimit == null
+                ? DEFAULT_RECENT_BAD_CASE_LIMIT
+                : Math.min(Math.max(recentLimit, 1), MAX_RECENT_BAD_CASE_LIMIT);
+
+        long totalFeedbackCount = feedbackMapper.selectCount(baseUserQuery(userId));
+        long helpfulCount = feedbackMapper.selectCount(baseUserQuery(userId)
+                .eq(AiAskFeedback::getHelpful, true));
+        long badCaseCount = feedbackMapper.selectCount(baseUserQuery(userId)
+                .eq(AiAskFeedback::getHelpful, false));
+        double badCaseRate = totalFeedbackCount == 0
+                ? 0.0
+                : roundToFourDecimals((double) badCaseCount / totalFeedbackCount);
+
+        List<AiAskFeedback> recentFeedbacks = feedbackMapper.selectList(baseUserQuery(userId)
+                .eq(AiAskFeedback::getHelpful, false)
+                .orderByDesc(AiAskFeedback::getCreatedAt)
+                .orderByDesc(AiAskFeedback::getId)
+                .last("LIMIT " + safeRecentLimit));
+
+        Map<Long, AiAskLog> logMap = loadAskLogMap(recentFeedbacks);
+        List<BadCaseSummaryResponse> recentBadCases = recentFeedbacks.stream()
+                .map(feedback -> toBadCaseSummary(feedback, logMap.get(feedback.getAskLogId())))
+                .toList();
+
+        return new EvaluationSummaryResponse(
+                totalFeedbackCount,
+                helpfulCount,
+                badCaseCount,
+                badCaseRate,
+                recentBadCases
+        );
+    }
+
     private String normalize(String value) {
         if (value == null) {
             return null;
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private LambdaQueryWrapper<AiAskFeedback> baseUserQuery(Long userId) {
+        return new LambdaQueryWrapper<AiAskFeedback>()
+                .eq(AiAskFeedback::getUserId, userId)
+                .eq(AiAskFeedback::getStatus, STATUS_ACTIVE);
+    }
+
+    private Map<Long, AiAskLog> loadAskLogMap(List<AiAskFeedback> feedbacks) {
+        List<Long> askLogIds = feedbacks.stream()
+                .map(AiAskFeedback::getAskLogId)
+                .distinct()
+                .toList();
+        if (askLogIds.isEmpty()) {
+            return Map.of();
+        }
+        return askLogMapper.selectList(new LambdaQueryWrapper<AiAskLog>()
+                        .in(AiAskLog::getId, askLogIds))
+                .stream()
+                .collect(Collectors.toMap(AiAskLog::getId, Function.identity()));
+    }
+
+    private BadCaseSummaryResponse toBadCaseSummary(AiAskFeedback feedback, AiAskLog askLog) {
+        String question = askLog == null ? null : askLog.getQuestion();
+        return new BadCaseSummaryResponse(
+                feedback.getId(),
+                feedback.getAskLogId(),
+                question,
+                feedback.getReason(),
+                feedback.getExpectedAnswer(),
+                feedback.getCreatedAt()
+        );
+    }
+
+    private double roundToFourDecimals(double value) {
+        return Math.round(value * 10000.0) / 10000.0;
     }
 
     private AskFeedbackResponse toResponse(AiAskFeedback feedback) {
