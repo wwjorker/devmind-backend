@@ -9,7 +9,7 @@ DevMind：个人开发知识库与 RAG 问答系统
 ## 技术栈
 
 ```text
-Java 17、Spring Boot、Spring Security、JWT、MyBatis-Plus、MySQL、Maven、Springdoc OpenAPI、DeepSeek API
+Java 17、Spring Boot、Spring Security、JWT、MyBatis-Plus、MySQL、Flyway、Maven、Springdoc OpenAPI、DeepSeek API
 ```
 
 ## 一句话项目介绍
@@ -25,6 +25,7 @@ Java 17、Spring Boot、Spring Security、JWT、MyBatis-Plus、MySQL、Maven、S
 - 抽象 `LlmClient` 与 `LlmClientRouter`，支持 Mock 与 DeepSeek Provider 切换，降低模型调用与业务编排耦合。
 - 设计 `ai_ask_log` 问答日志，记录 provider、prompt preview、召回 chunk、token usage、耗时等信息，用于成本观测和问题排查。
 - 设计 `ai_ask_feedback` 与 evaluation summary 接口，支持 helpful/bad case 标注、期望答案记录、bad case rate 统计和最近 bad case 分析。
+- 引入 Flyway 管理数据库结构版本，降低本地初始化和后续表结构变更的手动 SQL 执行成本。
 
 ## 更短版本
 
@@ -112,5 +113,4 @@ recent bad cases
 - 实现关键词 + 向量混合检索。
 - 增加 rerank。
 - 基于 bad case 构建离线评估集。
-- 引入 Flyway 管理数据库迁移。
 - 增加轻量前端展示核心链路。

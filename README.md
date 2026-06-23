@@ -47,6 +47,7 @@ MyBatis-Plus
 MySQL
 Redis configuration ready
 Maven
+Flyway
 Springdoc OpenAPI
 JJWT
 DeepSeek API
@@ -186,17 +187,21 @@ Requirements:
 - MySQL 5.7+/8.0+
 - IntelliJ IDEA 2024.1.2 or compatible
 
-Create database and tables:
+Create the database:
 
 ```sql
-SOURCE src/main/resources/db/schema.sql;
+CREATE DATABASE IF NOT EXISTS devmind DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-For an existing local database, run migration files under:
+Database tables are managed by Flyway migrations:
 
 ```text
-docs/sql/
+src/main/resources/db/migration/
 ```
+
+When the application starts, Flyway checks and applies pending migrations automatically.
+
+For an existing local database that was created manually before Flyway was introduced, `baseline-on-migrate` is enabled so Flyway can take over the current schema safely.
 
 Default app port:
 

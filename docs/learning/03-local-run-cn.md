@@ -15,25 +15,29 @@
 CREATE DATABASE IF NOT EXISTS devmind DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-然后执行：
+只需要创建数据库，不需要手动建表。
 
-```sql
-USE devmind;
-```
-
-再执行：
+从引入 Flyway 之后，表结构由项目启动时自动迁移：
 
 ```text
-src/main/resources/db/schema.sql
+src/main/resources/db/migration/
 ```
 
-如果你的数据库是早期版本建的，还需要按顺序执行：
+当前初始化迁移文件：
 
 ```text
-docs/sql/
+V1__init_schema.sql
 ```
 
-目录下的迁移脚本。
+如果本地数据库已经手动建过表，项目配置了：
+
+```yaml
+spring:
+  flyway:
+    baseline-on-migrate: true
+```
+
+含义是：Flyway 第一次接管已有数据库时，会把当前结构记录为基线，避免重复执行 V1 建表脚本。
 
 ## 第二步：配置 IDEA 运行环境变量
 
@@ -45,6 +49,7 @@ docs/sql/
 DEVMIND_DB_URL=jdbc:mysql://localhost:3306/devmind?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
 DEVMIND_DB_USERNAME=your_mysql_username
 DEVMIND_DB_PASSWORD=your_mysql_password
+DEVMIND_JWT_SECRET=replace_with_a_long_random_secret_for_non_local_use
 DEVMIND_AI_PROVIDER=mock
 ```
 
@@ -65,6 +70,8 @@ DEVMIND_DEEPSEEK_MODEL=deepseek-v4-flash
 ```text
 com.devmind.DevMindApplication
 ```
+
+启动时 Flyway 会自动检查数据库迁移。
 
 启动成功后访问：
 
@@ -102,11 +109,28 @@ DEVMIND_DB_PASSWORD
 
 ### Unknown database devmind
 
-说明还没有创建 `devmind` 数据库。
+说明还没有创建 `devmind` 数据库。Flyway 可以建表，但不会替你创建 MySQL database。
 
-### Table does not exist
+### Flyway migration failed
 
-说明还没有执行 `schema.sql`，或者早期数据库缺少后续迁移脚本。
+常见原因：
+
+- 数据库连接账号没有建表或改表权限。
+- 手动改过表结构，和迁移脚本不一致。
+- 新增迁移脚本命名不符合 Flyway 规范。
+
+Flyway 脚本命名格式：
+
+```text
+V版本号__说明.sql
+```
+
+例如：
+
+```text
+V1__init_schema.sql
+V2__add_vector_columns.sql
+```
 
 ### 401 unauthorized
 

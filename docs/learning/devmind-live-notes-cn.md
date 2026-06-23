@@ -968,3 +968,64 @@ bad case 比例高不高？
 ```text
 我基于 feedback 表做了一个 RAG 评估统计接口，聚合总反馈数、bad case 数、bad case rate 和最近 bad case。它相当于一个轻量质量看板，可以帮助后续判断 RAG 链路是否需要调整 prompt、检索策略或知识库内容。
 ```
+## 34 为什么引入 Flyway
+
+一开始我们通过 DBeaver 手动执行 SQL：
+
+```text
+schema.sql
+docs/sql/*.sql
+```
+
+这种方式适合学习和快速验证，但不够企业化。
+
+问题是：
+
+```text
+新电脑怎么知道要执行哪些 SQL？
+执行顺序怎么保证？
+某个字段是不是已经加过？
+团队里不同人的数据库结构会不会不一致？
+上线时怎么追踪数据库版本？
+```
+
+所以现在引入 Flyway。
+
+Flyway 的规则是把数据库变更写成版本化脚本：
+
+```text
+src/main/resources/db/migration/V1__init_schema.sql
+```
+
+命名规则：
+
+```text
+V版本号__说明.sql
+```
+
+例如：
+
+```text
+V1__init_schema.sql
+V2__add_vector_columns.sql
+V3__add_rerank_score.sql
+```
+
+项目启动时，Flyway 会自动检查哪些迁移已经执行，哪些还没执行，然后只执行新的迁移。
+
+因为我们本地数据库之前已经手动建过表，所以配置了：
+
+```yaml
+spring:
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 1
+```
+
+含义是：如果数据库已经不是空库，并且没有 Flyway 历史表，就把当前数据库结构当作 V1 基线接管，避免重复执行建表脚本。
+
+面试时可以这样讲：
+
+```text
+项目最开始为了快速验证使用手动 SQL，后面我引入 Flyway 做数据库版本管理。新环境只需要创建数据库，应用启动时会自动执行迁移；已有数据库则通过 baseline-on-migrate 接管，后续表结构变更都可以通过 V2、V3 这类脚本追踪。
+```

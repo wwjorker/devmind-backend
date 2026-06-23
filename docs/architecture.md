@@ -119,6 +119,7 @@ sequenceDiagram
 - Ask logs record question, retrieval keyword, chunk ids, answer, provider, token usage, and elapsed time for later bad-case analysis.
 - Ask feedback stores helpfulness labels, reasons, and expected answers so bad cases can become a small evaluation dataset.
 - The evaluation summary endpoint aggregates feedback count, bad-case count, bad-case rate, and recent bad cases for RAG quality analysis.
+- Flyway manages database schema versioning so local setup and future migrations do not depend on manual SQL copy-paste.
 
 ## Next Improvements
 
@@ -127,4 +128,3 @@ sequenceDiagram
 - Add hybrid retrieval: keyword + vector.
 - Add reranking.
 - Use feedback labels to build retrieval evaluation and bad-case reports.
-- Add Flyway for database migration management.
